@@ -1,21 +1,37 @@
 // 下一个工作单元
 let nextUnitOfWork = null
+// 用来收集dom的修改操作
+let wipRoot = null
 function workLoop(idleDeadline){
     let shouldYield = false
     while(!shouldYield && nextUnitOfWork){
         nextUnitOfWork = performUnitOfWork(nextUnitOfWork)
         shouldYield = idleDeadline.timeRemaining() < 1
     }
+    // 修改完成 需要追加到dom上
+    if(wipRoot && !nextUnitOfWork){
+        commitRoot()
+    }
     requestIdleCallback(workLoop)
 }
 requestIdleCallback(workLoop)
+function commitRoot() {
+    commitWork(wipRoot.child)
+    wipRoot = null
+}
+function commitWork(fiber){
+    if(!fiber){
+        return
+    }
+    const domParent = fiber.parent.dom
+    domParent.appendChild(fiber.dom)
+    commitWork(fiber.child)
+    commitWork(fiber.sibling)
+}
 function performUnitOfWork (fiber) {
     // 1 给fiber添加dom
     if(!fiber.dom){
         fiber.dom = createDom(fiber)
-    }
-    if(fiber.parent){
-        fiber.parent.dom.appendChild(fiber.dom)
     }
     
     // 2 给每个子节点创建对应的fiber
@@ -58,9 +74,6 @@ function performUnitOfWork (fiber) {
 
 function createDom (fiber) {
     const dom = fiber.type === 'TEXT_ELEMENT' ? document.createTextNode('') : document.createElement(fiber.type)
-    fiber.props.children.forEach(child => {
-        render(child, dom)
-    })
     Object.keys(fiber.props).filter(key => key !== 'children')
     .forEach(key => {
         dom[key] = fiber.props[key]
@@ -72,11 +85,12 @@ function createDom (fiber) {
  * @param { Element } container
  */
 function render (element, container){
-    nextUnitOfWork = {
+    wipRoot = {
         dom: container,
         props: {
             children: [ element ]
         }
     }
+    nextUnitOfWork = wipRoot
 }
 export default render
