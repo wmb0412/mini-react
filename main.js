@@ -1,4 +1,4 @@
-import { createElement } from './mini-react'
+import { createElement, render } from './mini-react'
 const element = createElement(
     'h1', 
     {
@@ -7,5 +7,5 @@ const element = createElement(
     'Hello'
   )
 console.log('element', element)
-// const container = document.getElementById("root")
-//   ReactDOM.render(element, container)
+const container = document.getElementById("root")
+render(element, container)
