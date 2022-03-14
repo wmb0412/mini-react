@@ -1,3 +1,13 @@
+// 下一个工作单元
+let nextUnitOfWork = null
+function workLoop(idleDeadline){
+    let shouldYield = false
+    while(!shouldYield && nextUnitOfWork){
+        nextUnitOfWork = performUnitOfWork(nextUnitOfWork)
+        shouldYield = idleDeadline.timeRemaining() < 1
+    }
+    requestIdleCallback(workLoop)
+}
 /**
  * @param element 带有type和props属性的对象
  * @param { Element } container
