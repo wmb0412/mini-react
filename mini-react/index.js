@@ -1,7 +1,8 @@
 import createElement from './createElement'
-import render from './render'
+import render, { useState } from './render'
 
 export {
     createElement,
-    render
+    render,
+    useState
 }

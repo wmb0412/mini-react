@@ -1,4 +1,4 @@
-import { createElement, render } from './mini-react'
+import { createElement, render, useState } from './mini-react'
 let inputValue = 'wmb'
 let showInput = true
 const inputElement = createElement(
@@ -24,7 +24,7 @@ const buttonElement = createElement(
 )
 const App = ({ name }) => {
   return createElement('div', {
-    name: "foo",
+    title: "foo",
   },
   '你好我是app'
   )
@@ -32,6 +32,14 @@ const App = ({ name }) => {
 const AppElement = createElement(App, {
   name: "foo",
 })
+const Counter = () => {
+  const [ count, setCount ] = useState(0)
+  return createElement('span', {
+    ffz: 123,
+    onclick: () => setCount(() => count+1),
+  }, String(count))
+}
+const CounterElement = createElement(Counter, {nima: 3444})
 function renderer () {
   const children = showInput ? [ inputElement, buttonElement ]: [ inputElement ]
   const element = createElement(
@@ -41,6 +49,7 @@ function renderer () {
     }, 
     'Hello' + inputValue,
     AppElement,
+    CounterElement,
     ...children
   )
   console.log('element', element)
