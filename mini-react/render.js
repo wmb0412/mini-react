@@ -34,11 +34,16 @@ function commitWork(fiber){
     if(!fiber){
         return
     }
-    const domParent = fiber.parent.dom
+    let domParentFiber = fiber.parent
+    
+    while(!domParentFiber.dom){
+        domParentFiber = domParentFiber.parent
+    }
+    const domParent = domParentFiber.dom
     if(fiber.effectTag === 'PLACEMENT' && fiber.dom){
-        domParent.append(fiber.dom)
-    }else if(fiber.effectTag === 'DELETION' && fiber.dom){
-        domParent.removeChild(fiber.dom)
+        domParent.appendChild(fiber.dom)
+    }else if(fiber.effectTag === 'DELETION'){
+        commitDeletion(fiber, domParent)
     }else if( fiber.effectTag === 'UPDATE' && fiber.dom){
         updateDom(
             fiber.dom,
@@ -50,7 +55,13 @@ function commitWork(fiber){
     commitWork(fiber.child)
     commitWork(fiber.sibling)
 }
-
+function commitDeletion(fiber, domParent){
+    if(fiber.dom){
+        domParent.removeChild(fiber.dom)
+    } else {
+        commitDeletion(fiber.child, domParent)
+    }
+}
 function updateDom (dom, prevProps, nextProps) {
     // 移除老的props
     Object.keys(prevProps)
@@ -84,15 +95,28 @@ function updateDom (dom, prevProps, nextProps) {
             dom.addEventListener(eventType, nextProps[key])
         })
 }
-function performUnitOfWork (fiber) {
-    // 1 给fiber添加dom
+function updateFunctionComponent(fiber) {
+    const children = [fiber.type(fiber.props)]
+    reconcileChildren(fiber, children)
+}
+function updateHostComponent(fiber) {
+     // 1 给fiber添加dom
     if(!fiber.dom){
         fiber.dom = createDom(fiber)
     }
-
     // 2 给每个子节点创建对应的fiber
     const elements = fiber.props.children
     reconcileChildren(fiber, elements)
+}
+function performUnitOfWork (fiber) {
+
+    const isFunctionComponent = fiber.type instanceof Function
+    if(isFunctionComponent){
+        updateFunctionComponent(fiber)
+    }else{
+        updateHostComponent(fiber)
+    }
+    
     //  3 返回下一个工作单元 fiber
     // 有child就返回child
     if(fiber.child){

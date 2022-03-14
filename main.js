@@ -22,6 +22,16 @@ const buttonElement = createElement(
   },
   '删除我自己'
 )
+const App = ({ name }) => {
+  return createElement('div', {
+    name: "foo",
+  },
+  '你好我是app'
+  )
+}
+const AppElement = createElement(App, {
+  name: "foo",
+})
 function renderer () {
   const children = showInput ? [ inputElement, buttonElement ]: [ inputElement ]
   const element = createElement(
@@ -30,6 +40,7 @@ function renderer () {
           title: 'foo'
     }, 
     'Hello' + inputValue,
+    AppElement,
     ...children
   )
   console.log('element', element)
